@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Importing Sidebar
 import Home from "./Home";
+import OrganSearch from "./OrganSearch";
+import Blockchain from "./BlockChain";
 
 function App() {
   return (
