@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Importing Sidebar
 import Home from "./Home";
 import OrganSearch from "./OrganSearch";
-import Blockchain from "./BlockChain";
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
             <Route path="/contact" element={<h2>Contact Page</h2>} />
             <Route path="/organ-search" element={<OrganSearch/>} />
             <Route path="*" element={<h2>404 - Page Not Found</h2>} />
-            <Route path="/Blockchain" element={<Blockchain/>}/>
           </Routes>
         </div>
       </div>
