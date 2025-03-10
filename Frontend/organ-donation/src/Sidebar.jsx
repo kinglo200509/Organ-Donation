@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import "./Sidebar.css"; // Import the updated CSS
+import { NavLink, useLocation } from "react-router-dom";
+import "./Sidebar.css";
 
 const menuItems = [
   { name: "Home", icon: "home", path: "/" },
   { name: "Dashboard", icon: "dashboard", path: "/dashboard" },
   { name: "Explore", icon: "explore", path: "/explore" },
-  { name: "Analytics", icon: "analytics", path: "/analytics" },
+  { name: "Organ Search", icon: "volunteer_activism", path: "/organ-search" },
   { name: "Settings", icon: "settings", path: "/settings" },
   { name: "Account", icon: "person", path: "/account" },
   { name: "Report", icon: "report", path: "/report" },
@@ -16,10 +16,16 @@ const menuItems = [
 
 const Sidebar = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const location = useLocation();
+
+  // Check if the current route is "Organ Search"
+  const isOrganSearchPage = location.pathname === "/organ-search";
 
   return (
     <div
-      className={`sidebar ${isExpanded ? "expanded" : "collapsed"}`}
+      className={`sidebar ${isExpanded ? "expanded" : "collapsed"} ${
+        isOrganSearchPage ? "red-theme" : "blue-theme"
+      }`}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >

@@ -1,29 +1,45 @@
+/* Default Sidebar */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
-    background: linear-gradient(to bottom, #222, #10428cc2); /* Dark grey gradient */
-    transition: width 0.3s ease;
+    width: 80px;
+    transition: width 0.3s ease, background 0.3s ease;
     overflow: hidden;
     padding-top: 20px;
     z-index: 20000;
 }
 
+/* Blue Theme (Default) */
+.sidebar.blue-theme {
+    background: linear-gradient(to bottom, rgba(34, 34, 34, 0.8), rgba(16, 66, 140, 0.8)); /* Transparent Blue */
+}
+
+/* Red Theme (For Organ Search Page) */
+.sidebar.red-theme {
+    background: linear-gradient(to bottom, rgb(90 0 0 / 4%), rgb(139 0 0 / 46%)); /* Transparent Red */
+}
+
+
+/* Expanded Sidebar */
 .sidebar.expanded {
     width: 250px;
 }
 
+/* Collapsed Sidebar */
 .sidebar.collapsed {
     width: 80px;
 }
 
+/* Menu List */
 .menu-list {
     padding: 0;
     list-style: none;
     margin-top: 10px;
 }
 
+/* Menu Items */
 .menu-item {
     display: flex;
     align-items: center;
@@ -34,10 +50,11 @@
 }
 
 .menu-item:hover {
-    background: rgba(50, 50, 50, 0.8); /* Black-grey shade */
+    background: rgba(50, 50, 50, 0.8); /* Dark hover effect */
     transform: translateX(8px);
 }
 
+/* Menu Links */
 .menu-link {
     text-decoration: none;
     color: white;
@@ -50,11 +67,13 @@
     transition: all 0.3s ease;
 }
 
+/* Active Menu Link */
 .menu-link.active {
-    background: rgba(0, 255, 127, 0.6); /* Green shade for active */
+    background: rgba(0, 255, 127, 0.6); /* Green active */
     border-left: 4px solid #00ff7f;
 }
 
+/* Icons */
 .icon {
     font-size: 22px;
     transition: transform 0.3s ease;
@@ -64,12 +83,14 @@
     transform: scale(1.1);
 }
 
+/* Menu Text */
 .menu-text {
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 0;
     transform: translateX(-10px);
 }
 
+/* Show text when sidebar is expanded */
 .sidebar.expanded .menu-text {
     opacity: 1;
     transform: translateX(0);
