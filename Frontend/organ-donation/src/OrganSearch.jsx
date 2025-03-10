@@ -66,11 +66,15 @@ const ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
   }
-];
-const API_URL = "http://127.0.0.1:5000"; // Flask API URL
+]
+const contractAddress = "0xbacB051e43d6D07ddE586212f5AC2e6EA13950a0";
 
 function OrganSearch() {
   const videoRef = useRef(null);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [contract, setContract] = useState(null);
+  const [account, setAccount] = useState("");
   const [formData, setFormData] = useState({
     organ: "",
     hla: "",
@@ -80,26 +84,33 @@ function OrganSearch() {
   const [flashMessage, setFlashMessage] = useState(null);
 
   useEffect(() => {
-    async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const signer = await provider.getSigner();
-          const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-          console.log("Wallet connected!");
-          return { contract, signer };
-        } catch (error) {
-          console.error("Error connecting wallet:", error);
+    const initEthers = async () => {
+      try {
+        if (!window.ethereum) {
+          alert("MetaMask is not installed. Please install it.");
+          return;
         }
-      } else {
-        alert("Install MetaMask!");
+  
+        const web3Provider = new ethers.BrowserProvider(window.ethereum);
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+  
+        const signerInstance = await web3Provider.getSigner();
+        const userAccount = await signerInstance.getAddress();
+        const contractInstance = new ethers.Contract(contractAddress, contractABI, signerInstance);
+  
+        setProvider(web3Provider);
+        setSigner(signerInstance);
+        setContract(contractInstance);
+        setAccount(userAccount);
+      } catch (error) {
+        console.error("Error initializing ethers:", error);
       }
-    }
-
-    connectWallet();
+    };
+  
+    initEthers();
   }, []);
+  
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -107,16 +118,76 @@ function OrganSearch() {
   // Submit Search Request
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const { organ, hla, blood, age } = formData;
+
+    if (contract) {
+      try {
+        const tx = await contract.registerDonor(organ, blood, hla, age);
+        await tx.wait();
+        alert("✅ Donor registered on the blockchain!");
+      } catch (error) {
+        console.error("❌ Registration failed", error);
+      }
+    }
+  };
+
+  const findMatchingDonor = async () => {
+    if (!contract) return;
+  
     try {
-      const response = await axios.post(`${API_URL}/find_donor`, formData);
-      setFlashMessage({ message: response.data.message, type: "success" });
+      const donorCount = await contract.donorCount();
+      let matchedDonors = [];
+  
+      for (let i = 1; i <= donorCount; i++) {
+        const donor = await contract.donors(i);
+  
+        // Extract donor details
+        const donorDetails = {
+          id: donor.id.toString(),
+          organType: donor.organType,
+          bloodType: donor.bloodType,
+          hlaType: donor.hlaType,
+          age: donor.age.toString(),
+          matched: donor.matched,
+        };
+  
+        console.log("Donor Info:", donorDetails);
+  
+        // Check if donor matches the search criteria
+        if (
+          donor.organType === formData.organ &&
+          donor.bloodType === formData.blood &&
+          donor.hlaType === formData.hla &&
+          donor.matched === false
+        ) {
+          matchedDonors.push(donorDetails);
+        }
+      }
+  
+      if (matchedDonors.length > 0) {
+        console.log("✅ Matching Donors Found:", matchedDonors);
+        alert(`Matching Donors: ${JSON.stringify(matchedDonors, null, 2)}`);
+      } else {
+        console.log("❌ No Matching Donors Found");
+        alert("No matching donors found.");
+      }
+  
+      return matchedDonors;
     } catch (error) {
-      setFlashMessage({ message: "❌ No matching donor found!", type: "error" });
+      console.error("Error fetching donors:", error);
+      alert("Error fetching donors. Check the console for more details.");
     }
   };
 
   return (
     <div className="organ-search-container">
+      {/* Flash Message */}
+      <FlashMessage
+        message={flashMessage.message}
+        type={flashMessage.type}
+        onClose={() => setFlashMessage({ message: "", type: "" })}
+      />
+
       {/* Background Video */}
       <video
         ref={videoRef}
