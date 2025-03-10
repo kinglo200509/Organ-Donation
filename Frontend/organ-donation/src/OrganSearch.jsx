@@ -154,12 +154,24 @@ const contractABI =  [
 ]
 const contractAddress = "0xbacB051e43d6D07ddE586212f5AC2e6EA13950a0";
 
+function FlashMessage({ message, type, onClose }) {
+  if (!message) return null;
+
+  return (
+    <div className={`flash-message ${type}`}>
+      {message}
+      <button className="close-btn" onClick={onClose}>✖</button>
+    </div>
+  );
+}
+
 function OrganSearch() {
   const videoRef = useRef(null);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
   const [account, setAccount] = useState("");
+  const [flashMessage, setFlashMessage] = useState({ message: "", type: "" }); // Added Flash Message state
   const [formData, setFormData] = useState({
     organ: "",
     hla: "",
@@ -171,29 +183,29 @@ function OrganSearch() {
     const initEthers = async () => {
       try {
         if (!window.ethereum) {
-          alert("MetaMask is not installed. Please install it.");
+          setFlashMessage({ message: "MetaMask is not installed. Please install it.", type: "error" });
           return;
         }
-  
+
         const web3Provider = new ethers.BrowserProvider(window.ethereum);
         await window.ethereum.request({ method: "eth_requestAccounts" });
-  
+
         const signerInstance = await web3Provider.getSigner();
         const userAccount = await signerInstance.getAddress();
         const contractInstance = new ethers.Contract(contractAddress, contractABI, signerInstance);
-  
+
         setProvider(web3Provider);
         setSigner(signerInstance);
         setContract(contractInstance);
         setAccount(userAccount);
       } catch (error) {
         console.error("Error initializing ethers:", error);
+        setFlashMessage({ message: "Failed to connect to MetaMask.", type: "error" });
       }
     };
-  
+
     initEthers();
   }, []);
-  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -207,24 +219,24 @@ function OrganSearch() {
       try {
         const tx = await contract.registerDonor(organ, blood, hla, age);
         await tx.wait();
-        alert("✅ Donor registered on the blockchain!");
+        setFlashMessage({ message: "✅ Donor registered on the blockchain!", type: "success" });
       } catch (error) {
         console.error("❌ Registration failed", error);
+        setFlashMessage({ message: "❌ Registration failed. Please try again.", type: "error" });
       }
     }
   };
 
   const findMatchingDonor = async () => {
     if (!contract) return;
-  
+
     try {
       const donorCount = await contract.donorCount();
       let matchedDonors = [];
-  
+
       for (let i = 1; i <= donorCount; i++) {
         const donor = await contract.donors(i);
-  
-        // Extract donor details
+
         const donorDetails = {
           id: donor.id.toString(),
           organType: donor.organType,
@@ -233,10 +245,9 @@ function OrganSearch() {
           age: donor.age.toString(),
           matched: donor.matched,
         };
-  
+
         console.log("Donor Info:", donorDetails);
-  
-        // Check if donor matches the search criteria
+
         if (
           donor.organType === formData.organ &&
           donor.bloodType === formData.blood &&
@@ -246,25 +257,31 @@ function OrganSearch() {
           matchedDonors.push(donorDetails);
         }
       }
-  
+
       if (matchedDonors.length > 0) {
         console.log("✅ Matching Donors Found:", matchedDonors);
-        alert(`Matching Donors: ${JSON.stringify(matchedDonors, null, 2)}`);
+        setFlashMessage({ message: `✅ ${matchedDonors.length} Matching Donor(s) Found!`, type: "success" });
       } else {
         console.log("❌ No Matching Donors Found");
-        alert("No matching donors found.");
+        setFlashMessage({ message: "❌ No matching donors found.", type: "error" });
       }
-  
+
       return matchedDonors;
     } catch (error) {
       console.error("Error fetching donors:", error);
-      alert("Error fetching donors. Check the console for more details.");
+      setFlashMessage({ message: "⚠️ Error fetching donors. Check console for details.", type: "error" });
     }
   };
-  
 
   return (
     <div className="organ-search-container">
+      {/* Flash Message */}
+      <FlashMessage
+        message={flashMessage.message}
+        type={flashMessage.type}
+        onClose={() => setFlashMessage({ message: "", type: "" })}
+      />
+
       {/* Background Video */}
       <video ref={videoRef} autoPlay loop muted playsInline className="background-video">
         <source src="/bgVid2.webm" type="video/webm" />
