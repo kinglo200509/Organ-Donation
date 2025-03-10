@@ -36,7 +36,7 @@ function App() {
 
   return (
     <div>
-      <div className="">Pokemon</div>
+      <div className="bg-amber-950">Pokemon 2</div>
     </div>
   );
 }
