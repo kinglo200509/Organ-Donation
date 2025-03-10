@@ -14,7 +14,7 @@ function App() {
             <Route path="/contact" element={<h2>Contact Page</h2>} />
             <Route path="/organ-search" element={<OrganSearch/>} />
             <Route path="*" element={<h2>404 - Page Not Found</h2>} />
-            <Route path="/Blockchain" element={<Blockchain/>}/>
+            <Route path="/Blockchain" element={<h2>hello</h2>}/>
           </Routes>
         </div>
       </div>
