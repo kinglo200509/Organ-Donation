@@ -1,0 +1,12 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  max-width: 100%;  /* Yeh pehle 1280px tha, jo issue create kar raha tha */
+  padding: 0;  /* Extra padding hata di */
+}

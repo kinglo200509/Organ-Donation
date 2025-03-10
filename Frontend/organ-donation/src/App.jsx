@@ -1,43 +1,23 @@
-import { useState , useEffect } from "react";
-import {ethers} from "ethers";
-
-// Blockchain-Data
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;  
-const CONTRACT_ABI = import.meta.env.VITE_CONTRACT_ABI;
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./Sidebar"; // Importing Sidebar
+import Home from "./Home";
 
 function App() {
-
-  const[account , setAccount] = useState(null);
-  const[contract , setcontract] = useState(null);
-
-  useEffect(()=>{
-    async function connectWallet() {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-    
-        const contractInstance = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          CONTRACT_ABI,
-          signer
-        );
-    
-        setcontract(contractInstance);
-        setAccount(await signer.getAddress());
-        console.log("THis is the account address: " , setAccount)
-      } else {
-        alert("Please install MetaMask!");
-      }
-    }
-
-    connectWallet()
-    
-  })
-
   return (
-    <div>
-      <div className="bg-amber-950">Pokemon 3</div>
-    </div>
+    <Router>
+      <div className="flex h-screen">
+        <Sidebar /> {/* Sidebar on the left */}
+        <div className="flex-1 p-4">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<h2>About Page</h2>} />
+            <Route path="/contact" element={<h2>Contact Page</h2>} />
+            <Route path="/services" element={<h2>Services Page</h2>} />
+            <Route path="*" element={<h2>404 - Page Not Found</h2>} />
+          </Routes>
+        </div>
+      </div>
+    </Router>
   );
 }
 
