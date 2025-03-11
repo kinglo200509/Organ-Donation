@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { FaUserInjured } from "react-icons/fa"; // 🏥 Import Patients Icon
 import "./Sidebar.css";
 
 const menuItems = [
@@ -7,6 +8,10 @@ const menuItems = [
   { name: "Dashboard", icon: "dashboard", path: "/dashboard" },
   { name: "Explore", icon: "explore", path: "/explore" },
   { name: "Organ Search", icon: "volunteer_activism", path: "/organ-search" },
+
+  // 🏥 Add Patients Section
+  { name: "Patients", icon: <FaUserInjured />, path: "/patients" },
+
   { name: "Settings", icon: "settings", path: "/settings" },
   { name: "Account", icon: "person", path: "/account" },
   { name: "Report", icon: "report", path: "/report" },
@@ -34,11 +39,14 @@ const Sidebar = () => {
           <li key={index} className="menu-item">
             <NavLink
               to={item.path}
-              className={({ isActive }) =>
-                `menu-link ${isActive ? "active" : ""}`
-              }
+              className={({ isActive }) => `menu-link ${isActive ? "active" : ""}`}
             >
-              <span className="material-symbols-outlined icon">{item.icon}</span>
+              {/* 🎨 Render Material UI Icons or Custom React Icons */}
+              {typeof item.icon === "string" ? (
+                <span className="material-symbols-outlined icon">{item.icon}</span>
+              ) : (
+                <span className="custom-icon">{item.icon}</span>
+              )}
               <span className="menu-text">{item.name}</span>
             </NavLink>
           </li>
