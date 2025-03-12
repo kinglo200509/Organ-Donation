@@ -4,8 +4,8 @@ import "./OrganSearch.css"; // Import styles
 import { ethers } from "ethers";
 
 // Contract Details
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const ABI = [
+const CONTRACT_ADDRESS = "0xbacB051e43d6D07ddE586212f5AC2e6EA13950a0";
+const CONTRACT_ABI = [
   {
       "anonymous": false,
       "inputs": [
@@ -66,9 +66,50 @@ const ABI = [
       "stateMutability": "nonpayable",
       "type": "function"
   }
-]
-const contractAddress = "0xbacB051e43d6D07ddE586212f5AC2e6EA13950a0";
+];
 
+const FlashMessage = ({ message, type, onClose }) => {
+    const [visible, setVisible] = useState(false);
+  
+    useEffect(() => {
+      if (message) {
+        setVisible(true);
+        const timer = setTimeout(() => {
+          setVisible(false);
+          setTimeout(onClose, 500); // Delay onClose to match fade-out
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }, [message, onClose]);
+  
+    if (!message) return null;
+  
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: "15px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "12px 25px",
+          backgroundColor: type === "success" ? "#28a745" : "#dc3545",
+          color: "#fff",
+          borderRadius: "8px",
+          boxShadow: "0px 6px 15px rgba(0,0,0,0.2)",
+          fontSize: "16px",
+          fontWeight: "bold",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.5s ease-in-out",
+          zIndex: 1000,
+          textAlign: "center",
+          minWidth: "200px",
+        }}
+      >
+        {message}
+      </div>
+    );
+  };
+  
 function OrganSearch() {
   const videoRef = useRef(null);
   const [provider, setProvider] = useState(null);
@@ -96,7 +137,7 @@ function OrganSearch() {
   
         const signerInstance = await web3Provider.getSigner();
         const userAccount = await signerInstance.getAddress();
-        const contractInstance = new ethers.Contract(contractAddress, contractABI, signerInstance);
+        const contractInstance = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signerInstance);
   
         setProvider(web3Provider);
         setSigner(signerInstance);
@@ -110,7 +151,6 @@ function OrganSearch() {
     initEthers();
   }, []);
   
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -119,14 +159,36 @@ function OrganSearch() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { organ, hla, blood, age } = formData;
-
+  
     if (contract) {
       try {
+        setFlashMessage({
+          message: "⏳ Waiting for MetaMask confirmation...",
+          type: "info",
+        });
+  
+        console.log("Sending transaction to register donor...");
         const tx = await contract.registerDonor(organ, blood, hla, age);
-        await tx.wait();
-        alert("✅ Donor registered on the blockchain!");
+  
+        setFlashMessage({
+          message: "⏳ Transaction submitted! Waiting for confirmation...",
+          type: "info",
+        });
+  
+        await tx.wait(); // Wait for confirmation
+  
+        console.log("✅ Transaction successful:", tx);
+        setFlashMessage({
+          message: "✅ Donor registered successfully!",
+          type: "success",
+        });
+  
       } catch (error) {
-        console.error("❌ Registration failed", error);
+        console.error("❌ Registration failed:", error);
+        setFlashMessage({
+          message: "❌ Transaction failed! Please try again.",
+          type: "error",
+        });
       }
     }
   };
@@ -166,27 +228,38 @@ function OrganSearch() {
   
       if (matchedDonors.length > 0) {
         console.log("✅ Matching Donors Found:", matchedDonors);
-        alert(`Matching Donors: ${JSON.stringify(matchedDonors, null, 2)}`);
+        setFlashMessage({
+          message: `Matching Donors Found: ${matchedDonors.length}`,
+          type: "success"
+        });
       } else {
         console.log("❌ No Matching Donors Found");
-        alert("No matching donors found.");
+        setFlashMessage({
+          message: "No matching donors found.",
+          type: "error"
+        });
       }
   
       return matchedDonors;
     } catch (error) {
       console.error("Error fetching donors:", error);
-      alert("Error fetching donors. Check the console for more details.");
+      setFlashMessage({
+        message: "Error fetching donors.",
+        type: "error"
+      });
     }
   };
 
   return (
     <div className="organ-search-container">
       {/* Flash Message */}
-      <FlashMessage
-        message={flashMessage.message}
-        type={flashMessage.type}
-        onClose={() => setFlashMessage({ message: "", type: "" })}
-      />
+      {flashMessage && flashMessage.message && (
+        <FlashMessage
+          message={flashMessage.message}
+          type={flashMessage.type}
+          onClose={() => setFlashMessage(null)}
+        />
+      )}
 
       {/* Background Video */}
       <video
@@ -204,12 +277,6 @@ function OrganSearch() {
       {/* Content on top of the video */}
       <div className="form-overlay">
         <h1 className="title">Find a Matching Organ</h1>
-
-        {flashMessage && (
-          <div className={`flash-message ${flashMessage.type}`}>
-            {flashMessage.message}
-          </div>
-        )}
 
         <form className="organ-search-form" onSubmit={handleSubmit}>
           {/* Organ Name */}
@@ -264,7 +331,7 @@ function OrganSearch() {
           </div>
 
           {/* Submit Button */}
-          <button type="submit" className="search-btn">
+          <button type="submit" className="search-btn" onClick={findMatchingDonor}>
             Search
           </button>
         </form>
